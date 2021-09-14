@@ -304,7 +304,7 @@ hasil_akhir = hasil_akhir[['user','asli','prediksi']].reset_index(drop=True)
 
 ---
 
-## Author Info
+## Tentang Penulis
 ![albara bimakasa](https://raw.githubusercontent.com/albarabimakasa/albarabimakasa/main/merbabu.jpeg)
 #### hi, saya Albara saya seorang mahasiswa teknik industri universitas islam indonesia yang memiliki ketertarikan pada bidang data science. jika anda ingin menghubungi saya anda dapat mengirim pesan pada link berikut.
 
