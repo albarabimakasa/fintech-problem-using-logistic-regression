@@ -1,4 +1,4 @@
-# Klasifikasi menggunakan logistic regression
+﻿# Klasifikasi menggunakan logistic regression
 
 ![Project Image](https://member365.com/wp-content/uploads/2020/01/GettyImages-1087891616-e1579898392661.jpg)
 
@@ -34,7 +34,7 @@ Proyek ini memiliki objektif untuk membantu perusahaan fintech untuk mengklasifi
 ---
 
 ## Analisis Statistikal Deskriptif
-
+**Statistik deskriptif** merupakan **analisis statistik** yang memberikan gambaran secara umum mengenai karakteristik dari masing-masing variabel sehingga memberikan informasi yang berguna.
 
 #### Mengimpor *Library* dan data
 ```python
@@ -78,7 +78,7 @@ for i in range(0,dataku_numerik.shape[1]):
 ```
 
 ![histogram data](https://raw.githubusercontent.com/albarabimakasa/fintech-problem-using-logistic-regression/main/picture/overview%20histogram.png)
-
+Dari kumpulan histogram masing masing variabel dapat di ketahui bahwa untuk variabel *age* dan *num_screens* memiliki sebaran yang tidak normal atau *skewed*. 
 
 #### mencari korelasi variable terhadap keputusan enrolled 
 ```python
@@ -87,6 +87,7 @@ korelasi.plot.bar('korelasi variable terhadap keputusan enrolled')
 
 ```
 ![korelasi](https://raw.githubusercontent.com/albarabimakasa/fintech-problem-using-logistic-regression/main/picture/mencari%20korelasi%20variable%20terhadap%20keputusan%20enrolled.png)
+Dari ke 7 variabel yang sudah di ubah ke bentuk numerik. Variabel num_screens memiliki korelasi tertinggi yang artinya semakin banyak user mengakses jumlah layar maka akan semakin besar kemungkinan user untuk meng *enrolled* fitur *premium*. meskipun demikian presentase korelasinya cuma 0.3 artinya tidak begitu kuat sehingga bukan variabel *noise* yang dapat meredupkan variabel yang lain.    
 
 #### membuat heatmap antar variable
 ```python
@@ -106,16 +107,19 @@ ax=plt.suptitle('matriks korelasi antar variabel')
 
 ```
 ![heat map](https://raw.githubusercontent.com/albarabimakasa/fintech-problem-using-logistic-regression/main/picture/heatmap%20antar%20variable.png)
-
+Pada heat map ini di tampilkan lebih luas masing masing korelasi satu variabel terhadap variabel lain.
 [Back To The Top](#Klasifikasi-menggunakan-logistic-regression)
 
 ---
 
 ## Feature Engineering
+Pada analisis di atas diketahui bahwa ada beberapa variabel/*feature* yang tidak terdistribusi secara normal atau *skewed*. Data yang tidak terdistribusi normal ini disebabkan oleh data-data yang tidak merepresentasikan populasi atau yang kita sebut dengan noise. Sehingga diperlukan Feature Engineering untuk menghilangkan *noise*.
 
+![populasi](https://raw.githubusercontent.com/albarabimakasa/fintech-problem-using-logistic-regression/main/picture/member%20yang%20enrolled%20lebih%20dari%2050%20jam%20karena%20tidak%20merepresentasikan%20populasi.png)
+Data menunjukkan bahwa dari 0-25 merupakan representasi populasi. Selisih merupakan waktu user berlangganan dan waktu pertamakali membuka aplikasi. dalam kasus ini penulis mengambil rentan data 0-50 sebagai populasi untuk melatih model.  
 #### memperbaiki data dan menghilangkan *noise*
 ```python
-#FEATURE engineering
+#proses parsing
 from dateutil import parser
 dataku.first_open = [parser.parse(i) for i in dataku.first_open]
 dataku.enrolled_date = [parser.parse(i) if isinstance(i,str) else i for i in dataku.enrolled_date]
@@ -125,10 +129,14 @@ dataku['selisih'] = (dataku.enrolled_date - dataku.first_open).astype('timedelta
 plt.hist(dataku.selisih.dropna(), range =[0,200])
 plt.suptitle('selisih waktu antara waktu enrolled dan frist open')
 plt.show()
-
 #memfilter nilai selisih yang lebih dari 50 jam karena tidak merepresentasikan populasi
 dataku.loc[dataku.selisih>50,'enrolled']=0
+```
+proses parsing di gunakan untuk menguraikan, atau pada kasus ini untuk merubah/memperbaiki kolom frist_open yang masih berupa text/string ke bentuk numerik.
 
+#### Membreak down layar layar yang di akses oleh user
+Pada dataset (dataku) kita mempunya kolom screen_list, pada kolom tersebut kita pilih layar layar yang paling sering di akses. Maka dari itu di perlukan data set ke 2 yakni dataset *top_screens* yang diberikan oleh pihak fintech.
+```python
 #mengimport data top screen
 
 top_screens = pd.read_csv('top_screens.csv')
@@ -148,13 +156,15 @@ dataku2['lainya'] = dataku2.screen_list.str.count(',')
 
 top_screens.sort()
 ```
+pada tahap ini data sudah bersih dari *noise* serta sudah berubah pada format yang tepat untuk ketahap selanjutnya.
 
 [Back To The Top](#Klasifikasi-menggunakan-logistic-regression)
 
 ---
 
 ## Feature Selection
-
+Pada Feature Engineering kita sudah membreakdown layar layar yang sering diakses oleh user. Akan tetapi beberapa daftar *top_screens* yang diberikan oleh pihak fintech memiliki kesamaan seperti layar loan ada loan, loan 2, loan 3 dst. begitupun untuk layar saving, credit dan cc maka dengan Feature selection kita menggabungkan layar yang mirip.
+  
 #### menggabungkan beberapa variabel yang mirip
 ```python
 # teknik funneling. penyederhanaan variable yang mirip
@@ -202,13 +212,13 @@ dataku2.drop(columns = ['user','first_open','enrolled','screen_list',
                         'enrolled_date'],inplace =True)
 dataku2.drop(columns =['selisih'],inplace = True)
 ```
-
+sekarang semua data yang diperlukan untuk melakukan membuat model sudah siap.
 [Back To The Top](#Klasifikasi-menggunakan-logistic-regression)
 
 ---
 
 ## Develop Model
-
+Untuk mentraining model yang bertujuan untuk mengklasifikasi user penulis mencoba menggunakan metode [logistic egression](https://id.wikipedia.org/wiki/Regresi_logistik). Metode ini merupakan model linier umum yang digunakan untuk regresi binomial.
 ```python
 #membagi training set dan test set
 
@@ -242,7 +252,7 @@ y_pred = classifier.predict(X_test)
 from sklearn.metrics import confusion_matrix, accuracy_score, classification_report
 cm= confusion_matrix(y_test, y_pred)
 ```
-
+Ternyata pada kolom ke 27 terdapat variabel yang seluruh angkanya adalah 0. maka variabel ini kita hilangkan saja. 
 [Back To The Top](#Klasifikasi-menggunakan-logistic-regression)
 
 ---
@@ -256,7 +266,7 @@ print('akurasi:{:.2f}'.format(evaluasi*100))
 ```
 >akurasi:76.32
 
-
+f
 
 ####  #visualisasi confussion matriks dengan seaborn
 ```python
@@ -267,6 +277,8 @@ cm_label.columns.name='prediksi'
 sns.heatmap(cm_label, annot= True, cmap='Reds',fmt='g') 
 ```
 ![confussion matrix](https://raw.githubusercontent.com/albarabimakasa/fintech-problem-using-logistic-regression/main/picture/visualisasi%20confussion%20matriks%20dengan%20seaborn.png)
+
+Diagram confussion matrix menujukkan bahwa model logistic regression mampu memprediksi user yang tidak enrolled dengan benar sebanyak 3837 user dan salah 1187 dan memprediksi user yang enrolled dengan benar sebanyak 3795 dan salah 1181.
 
 #### validasi dengan 10 fold cross validation
 ```python
@@ -279,12 +291,19 @@ accuracies.mean()
 accuracies.std()
 
 print('akurasi logistic regresi ={:.2f}% +/- {:.2f}%'.format(accuracies.mean()*100,accuracies.std()*100))
-
 ```
+>akurasi logistic regresi =76.58% +/- 0.79%
+
+ Model ini merupakan model yang memprediksi keputusan berdasarkan *behaviour* user sehingga akurasi tersebut terbilang tinggi diatas 75%.
+
 ## Produk Final
+Yang dibutuhkan oleh perusahaan adalah daftar user yang akan diberi promo atau tidak. Maka KPI nya adalah sebuah daftar user yang akan di beri promo.
+ 
 #### membuat daftar saran orang yang akan mendapatkan promo
 ```python
 #membuat daftar saran orang yang akan mendapatkan promo
+#mencopy dataku
+dataku2 = dataku.copy()
 var_enrolled = dataku2['enrolled']
 from sklearn.model_selection import train_test_split
 X_train,X_test,y_train, y_test = train_test_split(dataku2,var_enrolled,
@@ -300,7 +319,7 @@ hasil_akhir = pd.concat([y_pred_series,test_id],axis=1).dropna()
 hasil_akhir['prediksi'] = y_pred
 hasil_akhir = hasil_akhir[['user','asli','prediksi']].reset_index(drop=True)
 ```
-
+Karena pada proses feature selection kita membuang kolom user karena kita hanya membutuhkan kolom numerik. Maka untuk melacak user kita mencopy ulang dataku dan membangi nya dengan *train_test_split* dengan random state yang sama. sehingga di akhir proses daftar yang di inginkan oleh perusahaan sudah tersedia.  
 
 ---
 
