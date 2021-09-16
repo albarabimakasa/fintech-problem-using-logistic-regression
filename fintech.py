@@ -38,13 +38,16 @@ for i in range(0,dataku_numerik.shape[1]):
     figure = plt.gca()
     figure.set_title(dataku_numerik.columns.values[i])
     jumlah_bin = np.size(dataku_numerik.iloc[:,i].unique())
-    plt.hist(dataku_numerik.iloc[:,1], bins=jumlah_bin)
+    plt.hist(dataku_numerik.iloc[:,i], bins=jumlah_bin)
 
 #mencari korelasi variable terhadap keputusan enrolled 
+#plot bar
 korelasi = dataku_numerik.drop(columns=['enrolled'],inplace=False).corrwith(dataku_numerik.enrolled)
 korelasi.plot.bar('korelasi variable terhadap keputusan enrolled')
+
+#heatamp
 matriks_korelasi = dataku_numerik.drop(columns=['enrolled'],inplace=False).corr()
-sns.heatmap(matriks_korelasi, cmap='bone')
+sns.heatmap(matriks_korelasi, cmap='Reds')
 
 #membuat heatmap custom
 #buat matriks mask
@@ -188,7 +191,10 @@ accuracies.std()
 print('akurasi logistic regresi ={:.2f}% +/- {:.2f}%'.format(accuracies.mean()*100,accuracies.std()*100))
 
 #membuat daftar saran orang yang akan mendapatkan promo
-#
+
+#mencopy dataku
+dataku2 = dataku.copy()
+
 var_enrolled = dataku2['enrolled']
 from sklearn.model_selection import train_test_split
 X_train,X_test,y_train, y_test = train_test_split(dataku2,var_enrolled,
