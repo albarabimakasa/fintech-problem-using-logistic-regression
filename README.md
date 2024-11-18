@@ -1,27 +1,27 @@
-﻿# Klasifikasi Menggunakan Logistic Regression
+# Classification Using Logistic Regression
 
 ![Project Image](https://member365.com/wp-content/uploads/2020/01/GettyImages-1087891616-e1579898392661.jpg)
 
-> Menarik pelanggan dengan promo.
+> Attract customers with promotions.
 
 ---
 
-### Daftar isi
+### List of contents
 
-- [Deskripsi](#Deskripsi)
-- [Analisis Statistikal Deskriptif](#Analisis-Statistikal-Deskriptif)
+- [Description](#Description)
+- [Descriptive Statistical Analysis](#Descriptive-Statistical-Analysis)
 - [Feature Engineering](#Feature-Engineering)
 - [Feature Selection](#Feature-Selection)
 - [Develop Model](#Develop-Model)
-- [Evaluasi Statistik](#Evaluasi-Statistik)
-- [Produk Final](#Produk-Final)
-- [Tentang Penulis](#Tentang-Penulis)
+- [Statistical Evaluation](#Statistical-Evaluation)
+- [Final Product](#Final-Product)
+- [About the Author](#About-the-Author)
 
 ---
 
-## Deskripsi
+## Description
 
-Proyek ini memiliki objektif untuk membantu perusahaan fintech untuk mengklasifikasi member yang akan mendapatkan promo menggunakan logistic regression. Data yang diberikan adalah data mentah berupa csv yang merupakan data dari 50.000 user dengan 12 variabel first_open, dayofweek, hour, liked dll. member yang akan mendapatkan promo adalah member yang besar kemungkinan tidak langganan layanan *premium*. ini dimaksudkan dengan adanya promo maka mereka akan tertarik untuk menggunakan fitur *premium* 
+This project has an objective to help fintech companies to classify members who will get promos using logistic regression. The data provided is raw data in the form of csv which is data from 50,000 users with 12 variables first_open, dayofweek, hour, liked etc. members who will get promos are members who are most likely not subscribed to *premium* services. This is intended that with the promo they will be interested in using the *premium* features.
 
 #### Technologies
 
@@ -29,15 +29,15 @@ Proyek ini memiliki objektif untuk membantu perusahaan fintech untuk mengklasifi
 - Logistic Regression
 - K fold cross validation
 
-[Back To The Top](#Klasifikasi-Menggunakan-Logistic-Regression)
+[Back To The Top](#Descriptive-Statistical-Analysis)
 
 ---
 
-## Analisis Statistikal Deskriptif
+## Descriptive Statistical Analysis
 
-**Statistik deskriptif** merupakan **analisis statistik** yang memberikan gambaran secara umum mengenai karakteristik dari masing-masing variabel sehingga memberikan informasi yang berguna.
+**Descriptive statistics** is a **statistical analysis** that provides a general description of the characteristics of each variable, thereby providing useful information.
 
-#### Mengimpor *Library* dan data
+#### Importing *Libraries* and data
 ```python
 import numpy as np
 import pandas as pd
@@ -47,7 +47,7 @@ import seaborn as sns
 #import data set
 dataku = pd.read_csv('data_fintech.csv')
 ```
-#### Membuat Histogram
+#### Creating a Histogram
 ```python
 #ringkasan data
 ringkasan = dataku.describe()
@@ -79,9 +79,9 @@ for i in range(0,dataku_numerik.shape[1]):
 ```
 
 ![histogram data](https://raw.githubusercontent.com/albarabimakasa/fintech-problem-using-logistic-regression/main/picture/overview%20histogram.png)
-Dari kumpulan histogram masing masing variabel dapat di ketahui bahwa untuk variabel *age* dan *num_screens* memiliki sebaran yang tidak normal atau *skewed*. 
+From the collection of histograms of each variable, it can be seen that the variables *age* and *num_screens* have an abnormal or *skewed* distribution.
 
-#### Mencari Korelasi Variable Terhadap Keputusan *Enrolled* 
+#### Finding Correlation of Variables to *Enrolled* Decision
 ```python
 korelasi = dataku_numerik.drop(columns=['enrolled'],inplace=False).corrwith(dataku_numerik.enrolled)
 korelasi.plot.bar('korelasi variable terhadap keputusan enrolled')
@@ -89,9 +89,9 @@ korelasi.plot.bar('korelasi variable terhadap keputusan enrolled')
 ```
 ![korelasi](https://raw.githubusercontent.com/albarabimakasa/fintech-problem-using-logistic-regression/main/picture/mencari%20korelasi%20variable%20terhadap%20keputusan%20enrolled.png)
 
-Dari ke 7 variabel yang sudah di ubah ke bentuk numerik. Variabel num_screens memiliki korelasi tertinggi yang artinya semakin banyak user mengakses jumlah layar maka akan semakin besar kemungkinan user untuk meng *enrolled* fitur *premium*. meskipun demikian presentase korelasinya cuma 0.3 artinya tidak begitu kuat sehingga bukan variabel *noise* yang dapat meredupkan variabel yang lain.    
+Of the 7 variables that have been changed to numeric form. The num_screens variable has the highest correlation, which means that the more users access the number of screens, the greater the possibility of users to enroll *premium* features. However, the correlation percentage is only 0.3, meaning it is not so strong that it is not a *noise* variable that can dim other variables.
 
-#### Membuat Heatmap Antar Variable
+#### Creating a Heatmap Between Variables
 ```python
 #membuat heatmap antar variable
 matriks_korelasi = dataku_numerik.drop(columns=['enrolled'],inplace=False).corr()
@@ -109,7 +109,7 @@ ax=plt.suptitle('matriks korelasi antar variabel')
 
 ```
 ![heat map](https://raw.githubusercontent.com/albarabimakasa/fintech-problem-using-logistic-regression/main/picture/heatmap%20antar%20variable.png)
-Pada heat map ini di tampilkan lebih luas masing masing korelasi satu variabel terhadap variabel lain.
+In this heat map, each correlation between one variable and another variable is displayed more widely.
 
 [Back To The Top](#Klasifikasi-Menggunakan-Logistic-Regression)
 
@@ -117,13 +117,13 @@ Pada heat map ini di tampilkan lebih luas masing masing korelasi satu variabel t
 
 ## Feature Engineering
 
-Pada analisis di atas diketahui bahwa ada beberapa variabel/*feature* yang tidak terdistribusi secara normal atau *skewed*. Data yang tidak terdistribusi normal ini disebabkan oleh data-data yang tidak merepresentasikan populasi atau yang kita sebut dengan noise. Sehingga diperlukan Feature Engineering untuk menghilangkan *noise*.
+In the analysis above, it is known that there are several variables/*features* that are not normally distributed or *skewed*. This non-normally distributed data is caused by data that does not represent the population or what we call noise. So Feature Engineering is needed to eliminate *noise*.
 
 ![populasi](https://raw.githubusercontent.com/albarabimakasa/fintech-problem-using-logistic-regression/main/picture/member%20yang%20enrolled%20lebih%20dari%2050%20jam%20karena%20tidak%20merepresentasikan%20populasi.png)
 
-Data menunjukkan bahwa dari 0-25 merupakan representasi populasi. Selisih merupakan waktu user berlangganan dan waktu pertamakali membuka aplikasi. dalam kasus ini penulis mengambil rentan data 0-50 sebagai populasi untuk melatih model.  
+The data shows that from 0-25 is a representation of the population. The difference is the time the user subscribed and the time they first opened the application. In this case, the author took the data range 0-50 as the population to train the model.
 
-#### Memperbaiki Data dan Menghilangkan *Noise*
+#### Repairing Data and Removing *Noise*
 ```python
 #proses parsing
 from dateutil import parser
@@ -138,10 +138,10 @@ plt.show()
 #memfilter nilai selisih yang lebih dari 50 jam karena tidak merepresentasikan populasi
 dataku.loc[dataku.selisih>50,'enrolled']=0
 ```
-proses parsing di gunakan untuk menguraikan, atau pada kasus ini untuk merubah/memperbaiki kolom frist_open yang masih berupa text/string ke bentuk numerik.
+The parsing process is used to analyze, or in this case to change/repair the first_open column which is still in text/string form into numeric form.
 
 #### Membreakdown Layar Layar Yang di Akses Oleh User
-Pada dataset (dataku) kita mempunya kolom screen_list, pada kolom tersebut kita pilih layar layar yang paling sering di akses. Maka dari itu di perlukan data set ke 2 yakni dataset *top_screens* yang diberikan oleh pihak fintech.
+In the dataset (my data) we have a screen_list column, in that column we select the most frequently accessed screens. Therefore, a second data set is needed, namely the *top_screens* dataset provided by the fintech party.
 ```python
 #mengimport data top screen
 
@@ -162,16 +162,16 @@ dataku2['lainya'] = dataku2.screen_list.str.count(',')
 
 top_screens.sort()
 ```
-pada tahap ini data sudah bersih dari *noise* serta sudah berubah pada format yang tepat untuk ketahap selanjutnya.
+At this stage the data is clean from *noise* and has been changed to the correct format for the next stage.
 
 [Back To The Top](#Klasifikasi-Menggunakan-Logistic-Regression)
 
 ---
 
 ## Feature Selection
-Pada Feature Engineering kita sudah membreakdown layar layar yang sering diakses oleh user. Akan tetapi beberapa daftar *top_screens* yang diberikan oleh pihak fintech memiliki kesamaan seperti layar loan ada loan, loan 2, loan 3 dst. begitupun untuk layar saving, credit dan cc maka dengan Feature selection kita menggabungkan layar yang mirip.
+In Feature Engineering we have broken down the screens that are frequently accessed by users. However, some of the *top_screens* lists provided by the fintech party have similarities such as the loan screen there is loan, loan 2, loan 3 etc. Likewise for the saving, credit and cc screens, then with Feature selection we combine similar screens.
   
-#### Menggabungkan Beberapa Variabel Yang Mirip
+#### Combining Multiple Similar Variables
 ```python
 # teknik funneling. penyederhanaan variable yang mirip
 
@@ -218,14 +218,14 @@ dataku2.drop(columns = ['user','first_open','enrolled','screen_list',
                         'enrolled_date'],inplace =True)
 dataku2.drop(columns =['selisih'],inplace = True)
 ```
-sekarang semua data yang diperlukan untuk melakukan membuat model sudah siap.
+Now all the data needed to perform the modeling is ready.
 
 [Back To The Top](#Klasifikasi-Menggunakan-Logistic-Regression)
 
 ---
 
 ## Develop Model
-Untuk mentraining model yang bertujuan untuk mengklasifikasi user penulis mencoba menggunakan metode [logistic egression](https://id.wikipedia.org/wiki/Regresi_logistik). Metode ini merupakan model linier umum yang digunakan untuk regresi binomial.
+To train a model that aims to classify users, the author tried to use the method [logistic egression](https://id.wikipedia.org/wiki/Regresi_logistik). This method is a general linear model used for binomial regression.
 ```python
 #membagi training set dan test set
 
@@ -259,15 +259,15 @@ y_pred = classifier.predict(X_test)
 from sklearn.metrics import confusion_matrix, accuracy_score, classification_report
 cm= confusion_matrix(y_test, y_pred)
 ```
-Ternyata pada kolom ke 27 terdapat variabel yang seluruh angkanya adalah 0. maka variabel ini kita hilangkan saja. 
+It turns out that in column 27 there is a variable whose entire number is 0. So we just remove this variable.
 
 [Back To The Top](#Klasifikasi-Menggunakan-Logistic-Regression)
 
 ---
 
-## Evaluasi Statistik
+## Statistical Evaluation
 
-#### Menghitung Accuracy Score
+#### Calculating Accuracy Score
 ```python
 evaluasi = accuracy_score(y_test, y_pred)
 print('akurasi:{:.2f}'.format(evaluasi*100))
@@ -275,7 +275,7 @@ print('akurasi:{:.2f}'.format(evaluasi*100))
 >akurasi:76.32
 
 
-#### Visualisasi Confussion Matriks Dengan Seaborn
+#### Confusion Matrix Visualization With Seaborn
 
 ```python
 cm_label= pd.DataFrame(cm, columns=np.unique(y_test),
@@ -286,9 +286,9 @@ sns.heatmap(cm_label, annot= True, cmap='Reds',fmt='g')
 ```
 ![confussion matrix](https://raw.githubusercontent.com/albarabimakasa/fintech-problem-using-logistic-regression/main/picture/visualisasi%20confussion%20matriks%20dengan%20seaborn.png)
 
-Diagram confussion matrix menujukkan bahwa model logistic regression mampu memprediksi user yang tidak enrolled dengan benar sebanyak 3837 user dan salah 1187 dan memprediksi user yang enrolled dengan benar sebanyak 3795 dan salah 1181.
+The confusion matrix diagram shows that the logistic regression model is able to predict 3837 unenrolled users correctly and 1187 incorrectly, and predict 3795 enrolled users correctly and 1181 incorrectly.
 
-#### Validasi Dengan *10 Fold Cross Validation*
+#### Validation With *10 Fold Cross Validation*
 ```python
 #validasi dengan 10 fold cross validation
 from sklearn.model_selection import cross_val_score
@@ -302,14 +302,14 @@ print('akurasi logistic regresi ={:.2f}% +/- {:.2f}%'.format(accuracies.mean()*1
 ```
 >akurasi logistic regresi =76.58% +/- 0.79%
 
- Model ini merupakan model yang memprediksi keputusan berdasarkan *behaviour* user sehingga akurasi tersebut terbilang tinggi diatas 75%.
+This model is a model that predicts decisions based on user behavior so that the accuracy is quite high, above 75%.
 
 [Back To The Top](#Klasifikasi-Menggunakan-Logistic-Regression)
 
 ## Produk Final
-Yang dibutuhkan oleh perusahaan adalah daftar user yang akan diberi promo atau tidak. Maka KPI nya adalah sebuah daftar user yang akan di beri promo.
+What the company needs is a list of users who will be given a promo or not. So the KPI is a list of users who will be given a promo.
  
-#### Membuat Daftar Saran Orang Yang Akan Mendapatkan Promo
+#### Create a Suggested List of People Who Should Get the Promo
 ```python
 #membuat daftar saran orang yang akan mendapatkan promo
 #mencopy dataku
@@ -329,7 +329,7 @@ hasil_akhir = pd.concat([y_pred_series,test_id],axis=1).dropna()
 hasil_akhir['prediksi'] = y_pred
 hasil_akhir = hasil_akhir[['user','asli','prediksi']].reset_index(drop=True)
 ```
-Karena pada proses feature selection kita membuang kolom user karena kita hanya membutuhkan kolom numerik. Maka untuk melacak user kita mencopy ulang dataku dan membangi nya dengan *train_test_split* dengan random state yang sama. sehingga di akhir proses daftar yang di inginkan oleh perusahaan sudah tersedia.  
+Because in the feature selection process we discard the user column because we only need the numeric column. So to track the user we re-copy my data and divide it with *train_test_split* with the same random state. so that at the end of the process the list desired by the company is available.
 
 [Back To The Top](#Klasifikasi-Menggunakan-Logistic-Regression)
 
@@ -337,8 +337,7 @@ Karena pada proses feature selection kita membuang kolom user karena kita hanya 
 
 ## Tentang Penulis
 ![albara bimakasa](https://raw.githubusercontent.com/albarabimakasa/albarabimakasa/main/merbabu.jpeg)
-#### hi, saya Albara saya seorang mahasiswa teknik industri universitas islam indonesia yang memiliki ketertarikan pada bidang data science. jika anda ingin menghubungi saya anda dapat mengirim pesan pada link berikut.
-
+#### Hi, I'm Albara, I'm an industrial engineering student at the Islamic University of Indonesia who is interested in data science. If you want to contact me, you can send a message to the following link.
 - Twitter - [@albara_bimakasa](https://twitter.com/albara_bimakasa)
 - Email - [18522360@students.uii.ac.id]()
 
